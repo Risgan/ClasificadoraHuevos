@@ -1,0 +1,70 @@
+<div class="content">
+  <div class="header">
+    <div class="camera"></div>
+    <div class="datainfo">
+      <div class="flex flex-column gap-2">
+        <label for="username">Username</label>
+        <input pInputText id="username" aria-describedby="username-help" [(ngModel)]="value" />
+        <small id="username-help">
+          Enter your username to reset your password.
+        </small>
+      </div>
+      <div class="flex flex-column gap-2">
+        <label for="username">Username</label>
+        <input pInputText id="username" aria-describedby="username-help" [(ngModel)]="value" />
+        <small id="username-help">
+          Enter your username to reset your password.
+        </small>
+      </div>
+    </div>
+    <div class="actionbutton">
+      <p-dropdown [options]="cities" [(ngModel)]="selectedCity" variant="filled" optionLabel="name"
+        placeholder="Select a City" />
+
+      <p-dropdown [options]="cities" [(ngModel)]="selectedCity" variant="filled" optionLabel="name"
+        placeholder="Select a City" />
+
+      <p-button icon="pi pi-play-circle" />
+      <p-button icon="pi pi-pause-circle" />
+      <p-button icon="pi pi-stop-circle" />
+
+    </div>
+    <!-- <div class="selecbutton"></div> -->
+  </div>
+  <div class="container">
+    <div class="data">
+      <div class="char">
+        <p-chart type="line" [data]="data" [options]="options" />
+
+      </div>
+      <div class="table">
+        <p-table [value]="products" [tableStyle]="{ 'min-width': '50rem' }">
+          <ng-template pTemplate="header">
+              <tr>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Quantity</th>
+              </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-product>
+              <tr>
+                  <td>{{ product.code }}</td>
+                  <td>{{ product.name }}</td>
+                  <td>{{ product.category }}</td>
+                  <td>{{ product.quantity }}</td>
+              </tr>
+          </ng-template>
+      </p-table>
+      </div>
+    </div>
+    <div class="console">
+      <div class="card">
+        <p>Enter "<strong>date</strong>" to display the current date,
+        "<strong>greet &#123;0&#125;</strong>" for a message and "<strong>random</strong>" 
+        to get a random number.</p>
+        <p-terminal welcomeMessage="Welcome to PrimeNG" prompt=">" />
+    </div>
+    </div>
+  </div>
+</div>

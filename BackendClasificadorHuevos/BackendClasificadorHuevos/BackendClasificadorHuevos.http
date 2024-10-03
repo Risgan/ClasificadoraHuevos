@@ -1,0 +1,6 @@
+@BackendClasificadorHuevos_HostAddress = http://localhost:5051
+
+GET {{BackendClasificadorHuevos_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
