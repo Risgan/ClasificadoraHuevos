@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SplitterModule } from 'primeng/splitter';
 import { ButtonModule } from 'primeng/button';
@@ -8,11 +8,23 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { ChartModule } from 'primeng/chart';
 import { TerminalModule, TerminalService } from 'primeng/terminal';
+import { MeterGroupModule } from 'primeng/metergroup';
+
+const module = [
+  MeterGroupModule,
+  InputTextModule,
+  TerminalModule,
+  ChartModule,
+  TableModule,
+  SplitterModule,
+  ButtonModule,
+  DropdownModule,
+]
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, InputTextModule, TerminalModule, ChartModule, TableModule, SplitterModule, ButtonModule, DropdownModule, FormsModule, ReactiveFormsModule],
+  imports: [RouterOutlet, FormsModule, ReactiveFormsModule, module],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
   providers: [TerminalService],
@@ -20,65 +32,78 @@ import { TerminalModule, TerminalService } from 'primeng/terminal';
 })
 export class AppComponent implements OnInit {
 
+  clasification: string = ''
+  selectChart: number = 1;
+  type: any = 'bar';
+
+
+  // para eliminar o cambiar
   cities: any[] | undefined;
-
   selectedCity: any | undefined;
-
   value: string | undefined;
-
   products!: any[];
-
   data: any;
-
   options: any;
+  basicData: any;
+  basicOptions: any;
 
 
-  // @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
-  // @ViewChild('canvasElement') canvasElement!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
 
-  // videoDevices: MediaDeviceInfo[] = [];
-  // selectedCameraId: string | undefined;
-  // imageSrc: string | null = null;
+  stream!: MediaStream;
+  isBrowser: boolean = false;
+
+  constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
-    this.cities = [
-      { name: 'New York', code: 'NY' },
-      { name: 'Rome', code: 'RM' },
-      { name: 'London', code: 'LDN' },
-      { name: 'Istanbul', code: 'IST' },
-      { name: 'Paris', code: 'PRS' }
-    ];
+    this.isBrowser = typeof window !== 'undefined' && typeof navigator !== 'undefined';
+    if (this.isBrowser) {
+      // this.startCamera();
+      this.basicChart();
 
+    }
 
+  }
 
+  startCamera(): void {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          this.stream = stream;
+          this.videoElement.nativeElement.srcObject = stream;
+          this.videoElement.nativeElement.play();
+        })
+        .catch(error => {
+          console.error('Error accessing camera:', error);
+        });
+    }
+  }
+  stopCamera(): void {
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+    }
+  }
+
+  basicChart() {
     const documentStyle = getComputedStyle(document.documentElement);
     const textColor = documentStyle.getPropertyValue('--text-color');
     const textColorSecondary = documentStyle.getPropertyValue('--text-color-secondary');
     const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
 
-    this.data = {
-      labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+    this.basicData = {
+      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
       datasets: [
         {
-          label: 'First Dataset',
-          data: [65, 59, 80, 81, 56, 55, 40],
-          fill: false,
-          borderColor: documentStyle.getPropertyValue('--blue-500'),
-          tension: 0.4
-        },
-        {
-          label: 'Second Dataset',
-          data: [28, 48, 40, 19, 86, 27, 90],
-          fill: false,
-          borderColor: documentStyle.getPropertyValue('--pink-500'),
-          tension: 0.4
+          label: 'Sales',
+          data: [540, 325, 702, 620],
+          backgroundColor: ['rgba(255, 159, 64, 0.2)', 'rgba(75, 192, 192, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(153, 102, 255, 0.2)'],
+          borderColor: ['rgb(255, 159, 64)', 'rgb(75, 192, 192)', 'rgb(54, 162, 235)', 'rgb(153, 102, 255)'],
+          borderWidth: 1
         }
       ]
     };
 
-    this.options = {
-      maintainAspectRatio: false,
-      aspectRatio: 0.6,
+    this.basicOptions = {
       plugins: {
         legend: {
           labels: {
@@ -87,7 +112,8 @@ export class AppComponent implements OnInit {
         }
       },
       scales: {
-        x: {
+        y: {
+          beginAtZero: true,
           ticks: {
             color: textColorSecondary
           },
@@ -96,7 +122,7 @@ export class AppComponent implements OnInit {
             drawBorder: false
           }
         },
-        y: {
+        x: {
           ticks: {
             color: textColorSecondary
           },
@@ -107,7 +133,37 @@ export class AppComponent implements OnInit {
         }
       }
     };
-    // this.getVideoDevices();
+  }
+
+
+  changeChart(event: any){
+    // this.selectChart = event;
+console.log(event, this.type);
+
+    switch (event) {
+      case 1:
+        this.type = 'bar';
+        break;
+      case 2:
+        this.type = 'line';
+        break;
+      case 3:
+        this.basicChart();
+        break;
+      case 4:
+        this.basicChart();
+        break;
+      case 5:
+        this.basicChart();
+        break;
+      default:
+        break;
+    }
+    this.basicChart();
+    
+    this.cdr.detectChanges();
+
+
   }
 
   // async getVideoDevices() {

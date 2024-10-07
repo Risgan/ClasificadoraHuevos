@@ -1,52 +1,253 @@
-.content{
-    background: red;    
+.content {
+    background: #F3F5FC;
     width: 100%;
     height: 100vh;
+    display: flex;
+    flex-direction: row;
 }
 
-.header{
-    background: blue;    
+.menu {
+    width: 74px;
+    height: 358px;
+    border-radius: 33px;
+    background: #5D68AF;
+    margin: 10px;
+    box-shadow: 1px 2px 4px 0px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+
+}
+
+
+.menu-item .p-button {
+    background: transparent;
+
+    // font-size: 10rem;
+    span {
+        font-size: 1.5rem;
+    }
+}
+
+.container {
+    // background: red;
     width: 100%;
-    height: 30vh;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
 }
 
-.camera{
-    background: green;    
+.console {
+    background: white;
+    padding: 10px;
+    border-radius: 15px 0 0 15px;
+    box-shadow: -4px 2px 4px 0px rgba(0, 0, 0, 0.25);
+    width: 300px;
+    margin-left: 10px;
+
+    .p-terminal {
+        // background: black;
+        background: linear-gradient(101deg, #EC4382 0%, #BF50A2 100%);
+        ;
+        border: none;
+        color: white;
+        border-radius: 12px;
+        height: 100%;
+        width: 100%;
+        font-size: 25px;
+    }
 }
 
-.datainfo{
-    background: aqua;    
-}
-
-.actionbutton{
-    background: yellow;    
-}
-
-.container{
-    background: rgb(192, 22, 101);    
-    width: 100%;
-    height: 70vh;
-}
-
-.data{
-    background: rgb(233, 112, 31);    
-}
-
-.char{
-    background: rgb(11, 241, 50);    
-}
-
-.table{
-    background: rgb(89, 6, 114);    
-}
-
-.console{
-    background: rgb(175, 106, 135);    
-}
+.display {
+    // background: blue;
+    flex-grow: 1;
+    height: 100%;
 
 
-.p-terminal{
-    background: rgb(0, 0, 0);   
-    color: white;
-    font-size: 14px; 
+    .grap {
+        background: white;
+        box-shadow: 1px 2px 4px 0px rgba(0, 0, 0, 0.25);
+        flex-grow: 1;
+        border-radius: 12px;
+        padding: 10px;
+        margin-top: 10px;
+        // height: 100%;
+        display: flex;
+        flex-direction: row;
+
+        .chartbutton {
+            // background: red;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chartchart {
+            // background: blue;
+            // width: 100%;
+            // // background: blue;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            .chartin {
+                // background: green;
+                // width: 70%;
+                // height: 100%;
+
+                p-chart {
+                    div {
+                        width: 100%;
+                        height: 100%;
+                        // // width: 80%;
+                        display: flex;
+                        justify-content: center;
+                    }
+
+                }
+            }
+        }
+
+
+    }
 }
+
+
+.display .grap .chartchart .chartin {
+    height: 100%;
+    width: 80%;
+}
+
+.chartbutton .p-button{
+    width: 150px;
+}
+
+.subdisplay2 {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.title {
+    text-align: center;
+}
+
+h1 {
+    background: linear-gradient(to right, #1e3c72, #2a5298);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.subdisplay {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.cards {
+
+    width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+
+    .clasificado {
+        // background: white;
+        background: linear-gradient(101deg, #EC4382 0%, #BF50A2 100%);
+        box-shadow: 1px 2px 4px 0px rgba(0, 0, 0, 0.25);
+        border-radius: 12px;
+        padding: 10px;
+        width: 70%;
+        flex-grow: 1;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 50px;
+
+        .clasific {
+            h2 {
+                font-size: 28px;
+                font-weight: 600;
+            }
+        }
+    }
+
+    .camara {
+        background: gray;
+        // width: 240px;
+        height: 240px;
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+
+        video {
+            // width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            object-fit: cover;
+
+        }
+    }
+}
+
+
+
+
+// .header{
+//     background: blue;    
+//     width: 100%;
+//     display: flex;
+//     flex-direction: row;
+//     // height: 30vh;
+// }
+
+// .camera{
+//     background: green;    
+//     width: 30vh;
+//     height: 30vh;
+// }
+
+// .datainfo{
+//     background: aqua;    
+// }
+
+// .actionbutton{
+//     background: yellow;    
+// }
+
+// .container{
+//     background: rgb(192, 22, 101);    
+//     width: 100%;
+//     height: 70vh;
+// }
+
+// .data{
+//     background: rgb(233, 112, 31);    
+// }
+
+// .char{
+//     background: rgb(11, 241, 50);    
+// }
+
+// .table{
+//     background: rgb(89, 6, 114);    
+// }
+
+// .console{
+//     background: rgb(175, 106, 135);    
+// }
+
+
+// .p-terminal{
+//     background: rgb(0, 0, 0);   
+//     color: white;
+//     font-size: 14px; 
+// }

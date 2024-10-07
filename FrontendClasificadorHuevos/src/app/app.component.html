@@ -1,6 +1,18 @@
-<div class="content">
+<!-- <div class="content">
   <div class="header">
-    <div class="camera"></div>
+    <div class="actionbutton">
+      
+
+      <p-button icon="pi pi-camera" />
+      <p-button icon="pi pi-share-alt" />
+      <p-button icon="pi pi-play-circle" />
+      <p-button icon="pi pi-pause-circle" />
+      <p-button icon="pi pi-stop-circle" />
+
+    </div>
+    <div class="camera">
+
+    </div>
     <div class="datainfo">
       <div class="flex flex-column gap-2">
         <label for="username">Username</label>
@@ -17,54 +29,119 @@
         </small>
       </div>
     </div>
-    <div class="actionbutton">
-      <p-dropdown [options]="cities" [(ngModel)]="selectedCity" variant="filled" optionLabel="name"
-        placeholder="Select a City" />
-
-      <p-dropdown [options]="cities" [(ngModel)]="selectedCity" variant="filled" optionLabel="name"
-        placeholder="Select a City" />
-
-      <p-button icon="pi pi-play-circle" />
-      <p-button icon="pi pi-pause-circle" />
-      <p-button icon="pi pi-stop-circle" />
-
-    </div>
-    <!-- <div class="selecbutton"></div> -->
+   
   </div>
+ 
+</div> -->
+
+
+
+<div class="content">
+  <div class="menu">
+
+    <div class="menu-item">
+      <p-button icon="pi pi-camera" />
+    </div>
+    <div class="menu-item">
+      <p-button icon="pi pi-share-alt" />
+    </div>
+    <div class="menu-item">
+      <p-button icon="pi pi-play-circle" />
+    </div>
+    <div class="menu-item">
+      <p-button icon="pi pi-pause-circle" />
+    </div>
+    <div class="menu-item">
+      <p-button icon="pi pi-stop-circle" />
+    </div>
+
+  </div>
+
+
+
   <div class="container">
-    <div class="data">
-      <div class="char">
-        <p-chart type="line" [data]="data" [options]="options" />
+
+
+
+    <div class="display">
+
+      <div class="subdisplay2">
+        <div class="title">
+          <h1>Clasificadora de Huevos con IA</h1>
+        </div>
+
+        <div class="subdisplay">
+
+
+          <div class="cards">
+
+            <div class="camara">
+              <div>
+                <video #videoElement autoplay></video>
+              </div>
+            </div>
+
+
+          </div>
+
+          <!-- <div class="grap">
+            <p-chart type="bar" [data]="basicData" [options]="basicOptions" />
+          </div> -->
+          
+          <div class="clasificado">
+            <div class="clasific">
+
+              @if (true) {
+              <h2>Clasificando:
+                <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+              </h2>
+              }
+              @else {
+              <h2>Clasificado: {{clasification}}</h2>
+              }
+
+
+
+            </div>
+          </div>
+        </div>
+
+
+        <div class="grap">
+          <div class="chartbutton">
+            <p-button label="Barras" (onClick)="changeChart(1)" />
+            <p-button label="Linea Tiempo" (onClick)="changeChart(2)" />
+            <p-button label="Tabla" (onClick)="changeChart(3)" />
+            <p-button label="IA" (onClick)="changeChart(4)" />
+            <p-button label="Flow" (onClick)="changeChart(5)" />
+          </div>
+          <div class="chartchart">
+            <div class="chartin">
+              @switch (selectChart) {
+              @case (1){
+              <p-chart class="chart" [type]="type" [data]="basicData" [options]="basicOptions" />
+              }
+              @case (2){
+              <p-chart class="chart" type="pie" [data]="basicData" [options]="basicOptions" />
+              }
+              @case (3){
+              <p-chart class="chart" type="doughnut" [data]="basicData" [options]="basicOptions" />
+              }
+              }
+            </div>
+
+          </div>
+        </div>
 
       </div>
-      <div class="table">
-        <p-table [value]="products" [tableStyle]="{ 'min-width': '50rem' }">
-          <ng-template pTemplate="header">
-              <tr>
-                  <th>Code</th>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Quantity</th>
-              </tr>
-          </ng-template>
-          <ng-template pTemplate="body" let-product>
-              <tr>
-                  <td>{{ product.code }}</td>
-                  <td>{{ product.name }}</td>
-                  <td>{{ product.category }}</td>
-                  <td>{{ product.quantity }}</td>
-              </tr>
-          </ng-template>
-      </p-table>
-      </div>
+
+
+
     </div>
     <div class="console">
-      <div class="card">
-        <p>Enter "<strong>date</strong>" to display the current date,
-        "<strong>greet &#123;0&#125;</strong>" for a message and "<strong>random</strong>" 
-        to get a random number.</p>
-        <p-terminal welcomeMessage="Welcome to PrimeNG" prompt=">" />
-    </div>
+      <p-terminal welcomeMessage="Bienvenido a la Clasificadora de Huevos Inteligente" prompt=">" />
+
     </div>
   </div>
+
 </div>
