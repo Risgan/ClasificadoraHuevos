@@ -24,7 +24,15 @@ builder.Services.AddScoped<ISerialPortService, SerialPortService>();
 
 //builder.Services.AddScoped<IHuevosRepository, HuevosRepository>();
 //builder.Services.AddScoped<IHuevosServices, HuevosServices>();
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins", builder =>
+    {
+        builder.WithOrigins("*") // Usar la URL de appsettings.json
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
@@ -34,6 +42,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+
+
+app.UseCors("AllowSpecificOrigins");
+
 
 app.UseHttpsRedirection();
 
