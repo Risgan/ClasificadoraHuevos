@@ -9,3 +9,10 @@ export interface Clasificador {
   export interface ClasificadorCreate extends Omit<Clasificador, 'id'> {
 
   }
+
+
+  export interface ImagePredict{
+    resultado: string;
+    limpio: number;
+    sucio: number;
+  }

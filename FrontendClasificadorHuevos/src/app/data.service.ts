@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Clasificador, ClasificadorCreate } from './clasificador';
+import { Clasificador, ClasificadorCreate, ImagePredict } from './clasificador';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
@@ -66,8 +66,20 @@ export class DataService {
   }
 
 
+  
+  postImage(base64: string): Observable<ImagePredict> {
+    
+    const body = { base64 }; 
+    
+    return this.http.post<ImagePredict>(`${this.apiUrl}Huevos/predict`, body);
+  }
+  
   getPuertosComList(): Observable<string[]> {
     return this.http.get<string[]>(`${this.apiUrl}PuertosCom/list`);
   }
-
+  
+  closePuertosCom(): Observable<any> {
+    const body = { };
+    return this.http.get(`${this.apiUrl}PuertosCom/close`);
+  }
 }

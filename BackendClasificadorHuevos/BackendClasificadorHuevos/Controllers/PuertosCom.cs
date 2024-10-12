@@ -36,7 +36,7 @@ namespace BackendClasificadorHuevos.Controllers
             return Ok();
         }
 
-        [HttpPost("close")]
+        [HttpGet("close")]
         public ActionResult Close()
         {
             _serialPortService.Close();

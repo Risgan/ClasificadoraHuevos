@@ -7,7 +7,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { ChartModule } from 'primeng/chart';
-import { TerminalModule, TerminalService } from 'primeng/terminal';
+import { Terminal, TerminalModule, TerminalService } from 'primeng/terminal';
 import { MeterGroupModule } from 'primeng/metergroup';
 import { StepperModule } from 'primeng/stepper';
 import { DataService } from './data.service';
@@ -18,9 +18,12 @@ import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 import { CommonModule } from '@angular/common';
+import { Subject, Subscription } from 'rxjs';
+import { EditorModule } from 'primeng/editor';
 
 const module = [
   MeterGroupModule,
+  EditorModule,
   InputTextModule,
   TerminalModule,
   ChartModule,
@@ -69,27 +72,56 @@ export class AppComponent implements OnInit {
 
   cameras: MediaDeviceInfo[] = [];
 
-  
-  checkStart: boolean = true;
-  checkReset: boolean = true;
-  checkStpo: boolean = true;
-  checkPause: boolean = true;
+
+  checkStart: boolean = false;
+  checkReset: boolean = false;
+  checkStop: boolean = false;
+  checkPause: boolean = false;
   checkCamara: boolean = true;
-  checkSettings: boolean = true;
+  checkSettings: boolean = false;
+
+  valorLimpio: number = 0;
+  valorSucio: number = 0;
+  valorResultado: string = 'N/A';
+
+  text: string = "Consola de comandos";
 
 
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+  @ViewChild('canvasElement', { static: true }) canvasElement?: ElementRef<HTMLCanvasElement>;
+  // @ViewChild('terminal') terminal!: Terminal;
+  @ViewChild('editor') editor!: ElementRef;
 
   stream!: MediaStream;
   isBrowser: boolean = false;
 
+  subscription!: Subscription;
+
+  // private commandSubject = new Subject<string>();
+
   constructor(
     private cdr: ChangeDetectorRef,
     public dataService: DataService,
+    private terminalService: TerminalService,
     private messageService: MessageService
-  ) { }
+  ) {
+    // this.terminalService.sendResponse("response");
+
+    // this.subscription = this.terminalService.commandHandler.subscribe((command) => {
+    //   let response = command === 'date' ? new Date().toDateString() : 'Unknown command: ' + command;
+    //   this.terminalService.sendResponse(response);
+    // });
+
+    // this.commandSubject.subscribe((command) => {
+    //   this.terminalService.sendResponse(command);
+    // });
+
+  }
 
   ngOnInit() {
+
+    this.dataService.closePuertosCom().subscribe((data: string) => {});
+
     this.isBrowser = typeof window !== 'undefined' && typeof navigator !== 'undefined';
     if (this.isBrowser) {
       // this.startCamera();
@@ -124,7 +156,7 @@ export class AppComponent implements OnInit {
   startCamera(): void {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({
-        video: { deviceId: this.selectCamara ? { exact: this.selectCamara } : undefined }
+        video: { deviceId: this.selectCamara.value ? { exact: this.selectCamara.value } : undefined }
       })
         .then(stream => {
           this.stream = stream;
@@ -380,24 +412,61 @@ export class AppComponent implements OnInit {
     this.lineChart();
   }
 
-  start(){
+  start() {
+    this.checkStart = true;
+  }
+
+  pause() {
 
   }
 
-  pause(){
+  stop() {
+    this.checkStart = false;
+    // this.checkReset = true;
+    // this.checkStop = true;
+    // this.checkPause = true;
+  }
+
+  reset() {
 
   }
 
-  stop(){
+  camara() {
+    const canvas = this.canvasElement!.nativeElement;
+    const video = this.videoElement.nativeElement;
+    // Establecer el tamaño del canvas igual al del video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-  }
+    const context = canvas.getContext('2d');
+    if (context) {
+      this.writeTerminal('Captura imagen...');
+      // Dibujar el fotograma actual del video en el canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  reset(){
+      // Obtener la imagen en formato base64
+      const imageDataURL = canvas.toDataURL('image/png');
 
-  }
+      // Remover el prefijo "data:image/png;base64,"
+      const base64Image = imageDataURL.split(',')[1];
+      console.log(base64Image);
 
-  camara(){
-
+      // Enviar la imagen base64 al backend
+      this.writeTerminal('Analisando imagen');
+      this.dataService.postImage(base64Image).subscribe((data: any) => {
+        console.log('Respuesta del backend:', data);
+        this.valorLimpio = data.limpio;
+        this.valorSucio = data.sucio;
+        this.valorResultado = data.resultado;
+        this.writeTerminal("Analisis finalizado");
+        // this.clasification = data.resultado;
+        // this.dataService.create({ categoria: data.resultado, limpio: data.limpio, sucio: data.sucio });
+        // this.index = this.dataService.getIndex();
+        // this.columnsChart();
+        // this.lineChart();
+        // this.cdr.detectChanges();
+      });
+    }
   }
 
   ajustes() {
@@ -424,52 +493,79 @@ export class AppComponent implements OnInit {
     console.log('selectSettings');
     console.log(this.selectCamara, this.selectUsb);
     if (this.selectCamara && this.selectUsb) {
-      this.checkSettings = false;      
+      this.checkSettings = true;
+      this.startCamera();
     }
     else {
-      this.checkSettings = true;
+      this.checkSettings = false;
     }
     this.visible = false
   }
 
-  disabledStart(){
-    if (this.checkSettings) {
-      return true
+  disabledStart() {
+    if (!this.checkStart && this.checkSettings) {
+      return false
     }
-   return false; 
+    return true;
   }
 
-  disabledPause(){
-    if (this.checkSettings) {
-      return true
+  disabledPause() {
+    if (this.checkStart && this.checkSettings) {
+      return false
     }
-   return false; 
+    return true;
   }
 
-  disabledStop(){
-    if (this.checkSettings) {
-      return true
+  disabledStop() {
+    if (this.checkStart && this.checkSettings) {
+      return false
     }
-   return false; 
+    return true;
   }
 
-  disabledReset(){
-    if (this.checkSettings) {
-      return true
+  disabledReset() {
+    if (!this.checkStart && this.checkSettings) {
+      return false
     }
-   return false; 
+    return true;
   }
 
-  disabledCamara(){
-    if (this.checkSettings) {
-      return true
+  disabledCamara() {
+    if (!this.checkStart && this.checkSettings) {
+      return false
     }
-   return false; 
+    // else if (this.checkSettings) {
+    //   return false
+    // } 
+    return true;
   }
 
-  disabledSetting(){
-   return false; 
+  disabledSetting() {
+    if (!this.checkStart && !this.checkSettings) {
+      return false
+    }
+    else if (!this.checkStart) {
+      return false
+    }
+    return true;
   }
+
+  async writeTerminal(comando: any) {
+    
+    // this.text += comando.map((line:string) => `<p>>${line}</p>`).join('')+ '<br/>';
+    // this.text += comando.map((line:string) => `<p>>${line}</p>`).join('')+ '<br/>'; 
+    this.text += `<p>>${comando}</p>`; 
+  }
+  
+  // sendLines() {
+  //   // Envía las líneas de código
+  //   const lines = ['Code001', 'Code002asdfadfasdfadfasdf'];
+  //   // this.text += lines.join('<br/>'); // Agrega las líneas al contenido del editor
+  //   this.text += lines.map(line => `<p>>${line}</p>`).join('')+ '<br/>'; // Usa <p> para cada línea
+    
+  // }
+
+
 }
 
 
