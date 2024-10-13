@@ -12,7 +12,8 @@ export class DataService {
   private index = 0; // Índice para asignar a los objetos
 
 
-  private apiUrl = 'https://localhost:44320/api/';
+  // private apiUrl = 'https://localhost:44320/api/';
+  private apiUrl = 'http://localhost:26150/api/';
 
 
   constructor(
@@ -65,6 +66,10 @@ export class DataService {
     return this.index;
   }
 
+  deleteAll(): void {
+    this.dataTable = []; // Vacía el array eliminando todos los elementos
+    this.index = 0; // Reinicia el índice si lo deseas, dependiendo de tu lógica
+  }
 
   
   postImage(base64: string): Observable<ImagePredict> {
@@ -78,8 +83,20 @@ export class DataService {
     return this.http.get<string[]>(`${this.apiUrl}PuertosCom/list`);
   }
   
-  closePuertosCom(): Observable<any> {
-    const body = { };
-    return this.http.get(`${this.apiUrl}PuertosCom/close`);
+  closePuertosCom(): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}PuertosCom/close`);
+  }
+
+  openPuertosCom(puerto: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}PuertosCom/connect/${puerto}`);
+  }
+
+  writePuertosCom(mensaje: string): Observable<boolean> {
+
+    return this.http.post<boolean>(`${this.apiUrl}PuertosCom/write`,{mensaje});
+  }
+
+  readPuertosCom(): Observable<{ data: string }> {
+    return this.http.get<{ data: string }>(`${this.apiUrl}PuertosCom/read`);
   }
 }

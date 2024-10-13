@@ -1,4 +1,5 @@
-﻿using BackendClasificadorHuevos.Services;
+﻿using BackendClasificadorHuevos.Models;
+using BackendClasificadorHuevos.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.IO.Ports;
 
@@ -10,10 +11,24 @@ namespace BackendClasificadorHuevos.Controllers
     public class PuertosCom : ControllerBase
     {
         private readonly ISerialPortService _serialPortService;
+        private string _latestData = string.Empty;
 
-        public PuertosCom(ISerialPortService serialPortService)
+        private readonly DataRegistry _dataRegistry;
+
+
+        public PuertosCom(ISerialPortService serialPortService, DataRegistry dataRegistry)
         {
             _serialPortService = serialPortService;
+            _serialPortService.DataReceived += OnDataReceived;
+            _dataRegistry = dataRegistry;
+        }
+
+        private void OnDataReceived(string data)
+        {
+            if (!string.IsNullOrEmpty(data))
+            {
+                _dataRegistry.LatestData = data; // Almacenar el último dato recibido                
+            }
         }
 
         [HttpGet("list")]
@@ -26,30 +41,33 @@ namespace BackendClasificadorHuevos.Controllers
         [HttpGet("read")]
         public ActionResult<string> Read()
         {
-            return _serialPortService.ReadData();
+            //return Ok(_serialPortService.ReadData());
+
+            //return Ok(!string.IsNullOrEmpty(_latestData) ? _latestData : "No data received yet.");
+            return Ok(new { data = !string.IsNullOrEmpty(_dataRegistry.LatestData) ? _dataRegistry.LatestData : "0" });
+
         }
 
         [HttpPost("write")]
-        public ActionResult Write([FromBody] string data)
+        public ActionResult Write([FromBody] PuertosComModel data)
         {
-            _serialPortService.WriteData(data);
+            _serialPortService.WriteData(data.mensaje);
             return Ok();
         }
 
         [HttpGet("close")]
         public ActionResult Close()
-        {
-            _serialPortService.Close();
-            return Ok();
+        {            
+            return Ok(_serialPortService.Close());
         }
 
-        [HttpPost("connect")]
-        public ActionResult<string> ConnectToPort([FromBody] string portName)
+        [HttpGet("connect/{portName}")]
+        public ActionResult<string> ConnectToPort(string portName)
         {
             try
             {
-                _serialPortService.Connect(portName); // Conéctate al puerto seleccionado
-                return Ok($"Connected to {portName}");
+                _serialPortService.Close();
+                return Ok(_serialPortService.Connect(portName));
             }
             catch (Exception ex)
             {

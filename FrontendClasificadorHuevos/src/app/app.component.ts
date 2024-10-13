@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SplitterModule } from 'primeng/splitter';
 import { ButtonModule } from 'primeng/button';
@@ -20,10 +20,12 @@ import { MessageService } from 'primeng/api';
 import { CommonModule } from '@angular/common';
 import { Subject, Subscription } from 'rxjs';
 import { EditorModule } from 'primeng/editor';
+import { InputNumberModule } from 'primeng/inputnumber';
 
 const module = [
   MeterGroupModule,
   EditorModule,
+  InputNumberModule,
   InputTextModule,
   TerminalModule,
   ChartModule,
@@ -47,9 +49,11 @@ const module = [
   providers: [TerminalService, MessageService],
   encapsulation: ViewEncapsulation.None,
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  clasification: string = ''
+  clasification: string = '...'
+  isclasification: boolean = false;
+
   selectChart: number = 1;
   type: any = 'bar';
   dataColumn: any;
@@ -60,7 +64,7 @@ export class AppComponent implements OnInit {
   dataTable: Clasificador[] = [];
   index = 0;
   ciclos = 0;
-  cantidadCiclos = 0;
+  cantidadCiclos = 1;
 
 
   selectCamara: any;
@@ -86,11 +90,15 @@ export class AppComponent implements OnInit {
 
   text: string = "Consola de comandos";
 
+  previousData: string = '';
+  activeStepIndex: number = -1;
 
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
   @ViewChild('canvasElement', { static: true }) canvasElement?: ElementRef<HTMLCanvasElement>;
   // @ViewChild('terminal') terminal!: Terminal;
   @ViewChild('editor') editor!: ElementRef;
+  intervalId: any;
+
 
   stream!: MediaStream;
   isBrowser: boolean = false;
@@ -117,10 +125,16 @@ export class AppComponent implements OnInit {
     // });
 
   }
+  ngAfterViewInit(): void {
+    // throw new Error('Method not implemented.');
+    this.dataService.closePuertosCom().subscribe((data: boolean) => {
+      console.log(data);
+      
+    });
+  }
 
   ngOnInit() {
 
-    this.dataService.closePuertosCom().subscribe((data: string) => {});
 
     this.isBrowser = typeof window !== 'undefined' && typeof navigator !== 'undefined';
     if (this.isBrowser) {
@@ -130,10 +144,23 @@ export class AppComponent implements OnInit {
       this.columnsChart();
       this.lineChart();
 
+      this.intervalId = setInterval(() => {
+        this.limpiarConsola();
+      }, 60000);
+
 
     }
 
   }
+
+
+  ngOnDestroy() {
+    // Limpia el intervalo cuando se destruye el componente
+    // if (this.intervalId) {
+    //   clearInterval(this.intervalId);
+    // }
+  }
+
 
   listCameras(): void {
     navigator.mediaDevices.enumerateDevices()
@@ -262,7 +289,8 @@ export class AppComponent implements OnInit {
     const surfaceBorder = documentStyle.getPropertyValue('--surface-border');
 
 
-    const labels = Array.from({ length: this.index + 1 }, (_, i) => i); console.log('Labels:', labels);
+    const labels = Array.from({ length: this.index + 1 }, (_, i) => i);
+    console.log('Labels:', labels);
 
     const categories = ['A', 'AA', 'Sucio']; // Aquí defines las categorías que quieres graficar
     const chartData: { [key: string]: number[] } = {};
@@ -361,11 +389,16 @@ export class AppComponent implements OnInit {
   changeChart(event: any) {
 
     this.selectChart = event
+    this.reloadData();
+
+
+  }
+
+  reloadData() { 
+    this.index = this.dataService.getIndex();
     this.cdr.detectChanges();
     this.columnsChart();
     this.lineChart();
-
-
   }
 
   // async getVideoDevices() {
@@ -414,24 +447,199 @@ export class AppComponent implements OnInit {
 
   start() {
     this.checkStart = true;
+    this.checkPause = false;
+    this.checkStop = false;
+    this.ciclos = 0;
+    this.activeStepIndex = 0;
+    setTimeout(() => {
+      this.iniciarProceso()
+      
+    }, 1000);
+
   }
 
-  pause() {
+  async iniciarProceso(){
+    if (this.ciclos < this.cantidadCiclos) {
+      if (this.checkStop) {
+        this.writeTerminal('Proceso detenido');
+        this.checkStop = false;
+        return;
+      }
+      if (this.checkStart) {   
+        if(this.checkPause){
+          setTimeout(() => {
+            this.iniciarProceso()
+            
+          }, 200);
+        }
+        else{
+          // this.activeStepIndex = 1
+          await this.proces();
+          this.ciclos += 1;
+        }
+      }
+    }
+    else{
+      this.writeTerminal('Se completaron ' + this.ciclos + ' ciclos.');
+      this.activeStepIndex = 5;
+      this.checkStart = false;
+    }
 
+    // for (let i = 1; i <= this.cantidadCiclos; i++) {
+    //   if (this.checkStart) {        
+    //     this.ciclos = i;
+    //   }
+    //  }
+    //  this.writeTerminal('Se completaron ' + this.ciclos + ' ciclos.');
+     
+    
+  }
+
+  proces(){
+    this.dataService.writePuertosCom('a').subscribe((data: boolean) => {
+      console.log(data);
+      this.readData();
+    });
+  }
+
+
+  pause() {
+    this.checkPause = !this.checkPause;
+    if (this.checkPause) {
+      this.writeTerminal('Pausa');
+    }else{
+      this.writeTerminal('Reanudar');
+    }
   }
 
   stop() {
+    this.checkStop = true;
+
     this.checkStart = false;
+
+    // this.activeStepIndex = -1;
+
     // this.checkReset = true;
     // this.checkStop = true;
     // this.checkPause = true;
+    this.reset();
   }
 
   reset() {
-
+    this.ciclos = 0;
+    this.dataService.deleteAll();
+    this.index = 0;
+    this.valorLimpio = 0;
+    this.valorSucio = 0;
+    this.valorResultado = 'N/A';
+    this.reloadData();
+    this.activeStepIndex = -1;
   }
 
+  private readData() {
+    this.dataService.readPuertosCom().subscribe(async response => {
+        console.log(response);
+        // await this.writeTerminal(response.data);
+        
+        // Si la respuesta es "0", vuelve a llamar a readPuertosCom
+        // if (response.data === '0') {
+        //     setTimeout(() => {              
+        //       this.readData(); // Llamar a readData() nuevamente
+        //     }, 100);
+        // } 
+        console.log(response.data);
+        // debugger
+        if (response.data == 'A' && this.previousData != response.data) {
+          this.writeTerminal('Compuerta 1 Abierta')
+          this.activeStepIndex = 1;
+          this.readData();
+        }
+        else if (response.data == 'B' && this.previousData != response.data) {
+          this.writeTerminal('Compuerta 1 Cerrada')
+          this.dataService.writePuertosCom('b').subscribe((data: boolean) => {
+            console.log(data);
+            this.readData();
+          });
+        }
+        else if (response.data == 'C' && this.previousData != response.data) {
+          this.writeTerminal('Compuerta 2 Abierta')
+          this.activeStepIndex = 2;
+          this.readData();
+        }
+        else if (response.data == 'D' || response.data == 'DE' ) {
+          // this.writeTerminal('Compuerta 2 Cerrada')
+          // this.dataService.writePuertosCom('d').subscribe((data: boolean) => {
+          //   console.log(data);
+            this.readData();
+          // });
+        }
+        else if (response.data == 'E' && this.previousData != response.data) {
+          this.writeTerminal('Compuerta 2 Cerrada')
+          this.camara();
+
+          console.log("----->",this.valorLimpio, this.valorSucio, this.valorResultado);
+        
+
+          // this.dataService.writePuertosCom('d').subscribe((data: boolean) => {
+          //   console.log(data);
+          //   this.readData();
+          // });
+        }
+        else if (response.data == 'F' && this.previousData != response.data) {
+          this.writeTerminal('Fin Ciclo')
+          this.isclasification = false;
+          this.iniciarProceso();
+          // this.dataService.writePuertosCom('f').subscribe((data: boolean) => {
+          //   console.log(data);
+          //   this.readData();
+          // });
+        }
+        else if (response.data == 'G' && this.previousData != response.data) {
+          this.writeTerminal('Peso: A')
+          this.activeStepIndex = 4;
+          this.dataService.writePuertosCom('g').subscribe((data: boolean) => {
+            console.log(data);
+            this.clasification = 'A';
+            this.dataService.create({ categoria: 'A', limpio: this.valorLimpio, sucio: this.valorSucio});
+            this.reloadData();
+            this.readData();
+          });
+        }
+        else if (response.data == 'H' && this.previousData != response.data) {
+          this.writeTerminal('Peso: AA')
+          this.activeStepIndex = 4;
+          this.dataService.writePuertosCom('h').subscribe((data: boolean) => {
+            console.log(data);
+            this.clasification = 'AA';
+            this.dataService.create({ categoria: 'AA', limpio: this.valorLimpio, sucio: this.valorSucio});
+            this.reloadData();
+            this.readData();
+          });
+        }
+        else if (response.data == 'I' && this.previousData != response.data) {
+          this.writeTerminal('Sucio')
+          this.clasification = 'Sucio';
+          this.activeStepIndex = 4;
+          this.dataService.create({ categoria: 'Sucio', limpio: this.valorLimpio, sucio: this.valorSucio});
+          this.reloadData();
+          this.readData();
+
+        }
+        else {
+          // if (response.data == '0') {
+            setTimeout(() => {              
+              this.readData(); // Llamar a readData() nuevamente
+            }, 100);
+          // }          
+        }
+
+        this.previousData = response.data;
+
+    });
+}
+
   camara() {
+    this.isclasification = true;
     const canvas = this.canvasElement!.nativeElement;
     const video = this.videoElement.nativeElement;
     // Establecer el tamaño del canvas igual al del video
@@ -440,6 +648,7 @@ export class AppComponent implements OnInit {
 
     const context = canvas.getContext('2d');
     if (context) {
+      this.activeStepIndex = 3;
       this.writeTerminal('Captura imagen...');
       // Dibujar el fotograma actual del video en el canvas
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -459,6 +668,13 @@ export class AppComponent implements OnInit {
         this.valorSucio = data.sucio;
         this.valorResultado = data.resultado;
         this.writeTerminal("Analisis finalizado");
+        
+        this.dataService.writePuertosCom( this.valorLimpio > this.valorSucio ? 'y' : 'x' ).subscribe((data: boolean) => {
+          console.log(data);
+          this.readData();
+        });
+
+
         // this.clasification = data.resultado;
         // this.dataService.create({ categoria: data.resultado, limpio: data.limpio, sucio: data.sucio });
         // this.index = this.dataService.getIndex();
@@ -495,6 +711,17 @@ export class AppComponent implements OnInit {
     if (this.selectCamara && this.selectUsb) {
       this.checkSettings = true;
       this.startCamera();
+      this.writeTerminal(`Camara ${this.selectCamara.label} seleccionada`);
+      this.dataService.openPuertosCom(this.selectUsb.value).subscribe((data: boolean) => {
+        console.log(data);
+        if (data) {
+          this.writeTerminal(`Puerto ${this.selectUsb.value} abierto`);
+        }
+        else {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo abrir el puerto COM' });
+          this.writeTerminal('No se pudo abrir el puerto COM');
+        }
+      });
     }
     else {
       this.checkSettings = false;
@@ -503,14 +730,14 @@ export class AppComponent implements OnInit {
   }
 
   disabledStart() {
-    if (!this.checkStart && this.checkSettings) {
+    if (!this.checkStart && this.checkSettings && !this.checkStop) {
       return false
     }
     return true;
   }
 
   disabledPause() {
-    if (this.checkStart && this.checkSettings) {
+    if (this.checkStart && this.checkSettings && !this.checkStop) {
       return false
     }
     return true;
@@ -524,14 +751,14 @@ export class AppComponent implements OnInit {
   }
 
   disabledReset() {
-    if (!this.checkStart && this.checkSettings) {
+    if (!this.checkStart && this.checkSettings && !this.checkStop) {
       return false
     }
     return true;
   }
 
   disabledCamara() {
-    if (!this.checkStart && this.checkSettings) {
+    if (!this.checkStart && this.checkSettings && !this.checkStop) {
       return false
     }
     // else if (this.checkSettings) {
@@ -541,10 +768,10 @@ export class AppComponent implements OnInit {
   }
 
   disabledSetting() {
-    if (!this.checkStart && !this.checkSettings) {
+    if (!this.checkStart && !this.checkSettings && !this.checkStop) {
       return false
     }
-    else if (!this.checkStart) {
+    else if (!this.checkStart && !this.checkStop) {
       return false
     }
     return true;
@@ -557,14 +784,14 @@ export class AppComponent implements OnInit {
     this.text += `<p>>${comando}</p>`; 
   }
   
-  // sendLines() {
-  //   // Envía las líneas de código
-  //   const lines = ['Code001', 'Code002asdfadfasdfadfasdf'];
-  //   // this.text += lines.join('<br/>'); // Agrega las líneas al contenido del editor
-  //   this.text += lines.map(line => `<p>>${line}</p>`).join('')+ '<br/>'; // Usa <p> para cada línea
-    
-  // }
+  limpiarConsola(){
+    this.text = "";
+  }
+  
 
+  onStepChange(event: any) {
+    this.activeStepIndex = 2;
+  }
 
 }
 

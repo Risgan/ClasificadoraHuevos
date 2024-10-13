@@ -21,7 +21,7 @@
         (onClick)="reset()" />
     </div>
     <div class="menu-item">
-      <p-button icon="pi pi-camera" [disabled]="disabledCamara() && false" pTooltip="Test Captura" tooltipPosition="top"
+      <p-button icon="pi pi-camera" [disabled]="disabledCamara()" pTooltip="Test Captura" tooltipPosition="top"
         (onClick)="camara()" />
     </div>
     <div class="menu-item">
@@ -65,7 +65,14 @@
             <div class="dataciclo">
               <div class="contCiclos">
                 <div class="ciclos">
+                  @if (checkStart) {
                   <h2>Ciclos: {{ciclos}}/{{cantidadCiclos}}</h2>
+                  }
+                  @else {
+                  <p-inputNumber [(ngModel)]="cantidadCiclos" mode="decimal" [showButtons]="true" prefix="Ciclos: "
+                    inputId="minmax-buttons" [min]="1" [max]="100" />
+
+                  }
                 </div>
               </div>
 
@@ -81,7 +88,7 @@
               <div class="clasificado">
                 <div class="clasific">
 
-                  @if (true) {
+                  @if (!isclasification) {
                   <h2>Clasificando:
                     <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
                   </h2>
@@ -124,7 +131,8 @@
               @case (3){
               <div class="tablin">
 
-                <p-table [scrollable]="true" sortMode="single" scrollHeight="300px" [value]="this.dataService.readAll()">
+                <p-table [scrollable]="true" sortMode="single" scrollHeight="300px"
+                  [value]="this.dataService.readAll()">
                   <ng-template pTemplate="header">
                     <tr>
                       <th>Id</th>
@@ -172,48 +180,92 @@
               </div>
               }
               @case (5) {
-              <p-stepper>
-                <p-stepperPanel header="Header I">
+              <!-- <button (click)="onStepChange($event)">t</button> -->
+              <p-stepper [(activeStep)]="activeStepIndex" [linear]="true" orientation="vertical">
+                <p-stepperPanel header="Inicio">
                   <ng-template pTemplate="content" let-nextCallback="nextCallback" let-index="index">
                     <div class="flex flex-column h-12rem">
-                      <div
-                        class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium">
-                        Content I
+
+                      <div class="tarjetaFlow">
+                        Inicio del Flujo
                       </div>
                     </div>
-                    <div class="flex pt-4 justify-content-end">
-                      <p-button label="Next" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()" />
-                    </div>
+
                   </ng-template>
                 </p-stepperPanel>
-                <p-stepperPanel header="Header II">
+
+                <!-- <p-stepperPanel header="Ciclo">
+                  <ng-template pTemplate="content" let-nextCallback="nextCallback" let-index="index">
+                    <div class="flex flex-column h-12rem">
+
+                      <div class="tarjetaFlow">
+                        Ejecución del Ciclo {{index}}
+                      </div>
+                    </div>
+
+                  </ng-template>
+                </p-stepperPanel> -->
+
+                <p-stepperPanel header="Compuerta #1">
                   <ng-template pTemplate="content" let-prevCallback="prevCallback" let-nextCallback="nextCallback"
-                    let-index="index">
+                    let-index="index2">
+
                     <div class="flex flex-column h-12rem">
-                      <div
-                        class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium">
-                        Content II
+                      <div class="tarjetaFlow">
+                        Ejecución para la apertura y cierre de la compuerta #1 que permite el ingreso del huevo.
                       </div>
                     </div>
-                    <div class="flex pt-4 justify-content-between">
-                      <p-button label="Back" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()" />
-                      <p-button label="Next" icon="pi pi-arrow-right" iconPos="right" (onClick)="nextCallback.emit()" />
-                    </div>
+
                   </ng-template>
                 </p-stepperPanel>
-                <p-stepperPanel header="Header III">
-                  <ng-template pTemplate="content" let-prevCallback="prevCallback" let-index="index">
+                <p-stepperPanel header="Compuerta #2">
+                  <ng-template pTemplate="content" let-prevCallback="prevCallback" let-index="index2">
+
                     <div class="flex flex-column h-12rem">
-                      <div
-                        class="border-2 border-dashed surface-border border-round surface-ground flex-auto flex justify-content-center align-items-center font-medium">
-                        Content III
+                      <div class="tarjetaFlow">
+                        Ejecución para la apertura y cierre de la compuerta #2 que permite el posicionamiento del huevo.
                       </div>
                     </div>
-                    <div class="flex pt-4 justify-content-start">
-                      <p-button label="Back" icon="pi pi-arrow-left" (onClick)="prevCallback.emit()" />
-                    </div>
+
                   </ng-template>
                 </p-stepperPanel>
+
+                <p-stepperPanel header="IA">
+                  <ng-template pTemplate="content" let-nextCallback="nextCallback" let-index="index2">
+                    <div class="flex flex-column h-12rem">
+
+                      <div class="tarjetaFlow">
+                        Captura, Procesamiento de Imagen con IA Machine Learning en Tiempo Real y Clasificación acorde al peso.
+                      </div>
+                    </div>
+
+                  </ng-template>
+                </p-stepperPanel>
+
+                <p-stepperPanel header="Salida">
+                  <ng-template pTemplate="content" let-nextCallback="nextCallback" let-index="index2">
+                    <div class="flex flex-column h-12rem">
+
+                      <div class="tarjetaFlow">
+                        Huevo Clasificado como {{this.valorResultado}}, limpio {{this.valorLimpio * 100 | number: '1.2-2'}}% y sucio {{this.valorSucio * 100 | number: '1.2-2'}}%.
+                      </div>
+                    </div>
+
+                  </ng-template>
+                </p-stepperPanel>
+
+                <p-stepperPanel header="Fin">
+                  <ng-template pTemplate="content" let-nextCallback="nextCallback" let-index="index2">
+                    <div class="flex flex-column h-12rem">
+
+                      <div class="tarjetaFlow">
+                        Fin del Flujo, total de ciclos ejecutados {{this.ciclos}}
+                      </div>
+                    </div>
+
+                  </ng-template>
+                </p-stepperPanel>
+
               </p-stepper>
               }
 
@@ -231,7 +283,7 @@
     <div class="console">
       <!-- <button (click)="writeTerminal('as')">te</button> -->
       <!-- <p-terminal #terminal welcomeMessage="Consola Mando IA" prompt=">" /> -->
-      <p-editor [(ngModel)]="text" #editor  [readonly]="false" [style]="{ height: '96vh' }" />
+      <p-editor [(ngModel)]="text" #editor [readonly]="true" [style]="{ height: '96vh' }" />
 
     </div>
   </div>

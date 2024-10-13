@@ -1,4 +1,5 @@
 using BackendClasificadorHuevos.DataAccess;
+using BackendClasificadorHuevos.Models;
 using BackendClasificadorHuevos.Repositorios;
 using BackendClasificadorHuevos.Services;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,8 @@ builder.Services.AddDbContext<DbCHContext>(options =>
 
 builder.Services.AddScoped<IHuevosRepository, HuevosRepository>();
 builder.Services.AddScoped<IHuevosServices, HuevosServices>();
-builder.Services.AddScoped<ISerialPortService, SerialPortService>();
+builder.Services.AddSingleton<ISerialPortService, SerialPortService>();
+builder.Services.AddSingleton<DataRegistry>();
 
 //builder.Services.AddScoped<IHuevosRepository, HuevosRepository>();
 //builder.Services.AddScoped<IHuevosServices, HuevosServices>();
